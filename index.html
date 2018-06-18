@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket demo</title>
+    <style type="text/css">
+        body {
+            font-family: "Courier New", sans-serif;
+            text-align: center;
+        }
+        .buttons {
+            display: inline-block;
+            justify-content: center;
+        }
+        .buttons ul {
+            list-style-type: none;
+            margin-left: 0;
+            padding-left: 0;
+        }
+        .buttons ul li {
+            float: left;
+        }
+        .state_colour {
+            border: medium solid;
+            height: 2em;
+            width: 2em;
+            cursor: pointer;
+            border-radius: 2em;
+            margin: 0 1em;
+        }
+    </style>
+</head>
+<body>
+<div class="buttons">
+    <ul>
+        <li>
+            <div class="state_colour"></div><br />
+            <div class="state_text">?</div>
+        </li>
+        <li>
+            <div class="state_colour"></div><br />
+            <div class="state_text">?</div>
+        </li>
+    </ul>
+</div>
+<script>
+    var pins = [15,18];
+    var state_colour = document.querySelectorAll('.state_colour'),
+        state_text = document.querySelectorAll('.state_text'),
+        websocket = new WebSocket("ws://192.168.1.12:8765/");
+
+    for(var i = 0; i<pins.length;i++) {
+        var pin_number = pins[i];
+        var json_message = JSON.stringify({pin: pin_number});
+        state_colour[i].onclick = function(arg) {
+            return function() {
+                websocket.send(arg);
+            }
+        }(json_message)
+    }
+    websocket.onmessage = function (event) {
+        data = JSON.parse(event.data);
+        console.log(data);
+        switch (data.type) {
+            case 'state':
+                for(i in pins) {
+                    state_text[i].textContent = data[pins[i]] ? 'on' : 'off';
+                    state_colour[i].style.backgroundColor = data[pins[i]] ? 'green' : 'red'
+                }
+                break;
+            default:
+                console.error(
+                    "unsupported event", data);
+        }
+    };
+</script>
+</body>
+</html>
