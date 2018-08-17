@@ -2,50 +2,77 @@
 <html>
 <head>
     <title>WebSocket demo</title>
-    <style type="text/css">
-        body {
-            font-family: "Courier New", sans-serif;
-            text-align: center;
-        }
-        .buttons {
-            display: inline-block;
-            justify-content: center;
-        }
-        .buttons ul {
-            list-style-type: none;
-            margin-left: 0;
-            padding-left: 0;
-        }
-        .buttons ul li {
-            float: left;
-        }
-        .state_colour {
-            border: medium solid;
-            height: 2em;
-            width: 2em;
-            cursor: pointer;
-            border-radius: 2em;
-            margin: 0 1em;
-        }
-    </style>
 </head>
 <body>
-<div class="buttons">
+<style type="text/css">
+    .buttons {
+        display: inline-block;
+        justify-content: center;
+    }
+    .buttons ul {
+        list-style-type: none;
+        margin-left: 0;
+        padding-left: 0;
+        margin-top: 5px;
+    }
+    .buttons ul li {
+        float: left;
+    }
+    .state_colour {
+        border: medium solid;
+        height: 2em;
+        width: 2em;
+        cursor: pointer;
+        border-radius: 2em;
+        margin: 0.1em 0.5em;
+    }
+    .multiroom {
+        width: 100%;
+        bottom: 94px;
+        z-index: 10;
+        position: fixed;
+        background-color: rgba(51, 51, 51, .4);
+        text-align: center;
+    }
+</style>
+<div class="multiroom"><div class="buttons">
     <ul>
         <li>
-            <div class="state_colour"></div><br />
-            <div class="state_text">?</div>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
         </li>
         <li>
-            <div class="state_colour"></div><br />
-            <div class="state_text">?</div>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
+        </li>
+        <li>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
+        </li>
+        <li>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
+        </li>
+        <li>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
+        </li>
+        <li>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
+        </li>
+        <li>
+            <div class="state_colour"></div>
+            <!--<div class="state_text">?</div>-->
         </li>
     </ul>
 </div>
+</div>
+
 <script>
-    var pins = [15,18];
+    var pins = [2,3,4,17,27,22,9];
     var state_colour = document.querySelectorAll('.state_colour'),
-        state_text = document.querySelectorAll('.state_text'),
+//        state_text = document.querySelectorAll('.state_text'),
         websocket = new WebSocket("ws://192.168.1.12:8765/");
 
     for(var i = 0; i<pins.length;i++) {
@@ -59,11 +86,10 @@
     }
     websocket.onmessage = function (event) {
         data = JSON.parse(event.data);
-        console.log(data);
         switch (data.type) {
             case 'state':
                 for(i in pins) {
-                    state_text[i].textContent = data[pins[i]] ? 'on' : 'off';
+//                    state_text[i].textContent = data[pins[i]] ? 'on' : 'off';
                     state_colour[i].style.backgroundColor = data[pins[i]] ? 'green' : 'red'
                 }
                 break;

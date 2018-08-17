@@ -8,7 +8,7 @@ import time
 import json
 
 # Pin In Number
-CHANGE_STATE_PINS = {14: {'lastStatus': 0, 'statusPin': 15}, 23: {'lastStatus': 0, 'statusPin': 18}}
+CHANGE_STATE_PINS = {14: {'lastStatus': 0, 'statusPin': 2}, 18: {'lastStatus': 0, 'statusPin': 3}, 10: {'lastStatus': 0, 'statusPin': 4}, 8: {'lastStatus': 0, 'statusPin': 17}, 5: {'lastStatus': 0, 'statusPin':27}, 13: {'lastStatus': 0, 'statusPin': 22}, 26: {'lastStatus': 0, 'statusPin': 9}}
 
 GPIO.setmode(GPIO.BCM)
 
@@ -18,6 +18,7 @@ for k, v in CHANGE_STATE_PINS.items():
 
 async def changeStateReq(uri, pin):
     async with websockets.connect(uri) as websocket:
+        print(json.dumps({'pin': pin}, indent='\t'))
         await websocket.send(json.dumps({'pin': pin}, indent='\t'))
 
 try:
