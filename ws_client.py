@@ -7,6 +7,8 @@ import RPi.GPIO as GPIO
 import time
 import json
 import os
+import signal
+import subprocess
 
 # Pin In Number
 CHANGE_STATE_PINS = {15: {'lastStatus': 0}, 24: {'lastStatus': 0}, 25: {'lastStatus': 0}, 7: {'lastStatus': 0}, 6: {'lastStatus': 0}, 19: {'lastStatus': 0}, 14: {'lastStatus': 0, 'statusPin': 2}, 18: {'lastStatus': 0, 'statusPin': 3}, 10: {'lastStatus': 0, 'statusPin': 4}, 8: {'lastStatus': 0, 'statusPin': 17}, 5: {'lastStatus': 0, 'statusPin':27}, 13: {'lastStatus': 0, 'statusPin': 22}, 26: {'lastStatus': 0, 'statusPin': 9}}
@@ -74,6 +76,9 @@ try:
     while True:
         for k, v in CHANGE_STATE_PINS.items():
             pin_status = GPIO.input(k)
+            global microphone
+            if v['lastStatus'] == 0 and pin_status == 1 and k == 6:
+                    microphone = subprocess.Popen('arecord -D plughw:1,0 |  aplay', stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
             if v['lastStatus'] == 1 and pin_status == 0:
                 if k == 15:
                     asyncio.get_event_loop().run_until_complete(
@@ -86,8 +91,11 @@ try:
                 elif k == 7:
                     print('7')
                 elif k == 6:
-                    print('6')
                     #microphone
+                    print('kill him')
+                    if microphone.poll() == None:
+                        os.killpg(os.getpgid(microphone.pid), signal.SIGTERM)
+#                    microphone.kill()
                 elif k == 19:
                     os.system('sudo reboot')
                 else:
