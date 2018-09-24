@@ -18,10 +18,10 @@ GPIO.setmode(GPIO.BCM)
 for k, v in CHANGE_STATE_PINS.items():
     GPIO.setup(k, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-currentPlaylistUri = ''
+currentPlaylist = {}
 
 
-async def changeStateReq(uri, pin):
+async def changestate(uri, pin):
     async with websockets.connect(uri) as websocket:
         await websocket.send(json.dumps({'pin': pin}, indent='\t'))
 
@@ -37,29 +37,31 @@ async def playpause(uri):
         else:
             await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
 
-async def jumpplaylists(uri):
+
+async def jumpplaylists(uri, prefix):
     async with websockets.connect(uri) as websocket:
 
-        global currentPlaylistUri
+        global currentPlaylist
         previousPlaylistUri = ''
 
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playlists.as_list"}, indent='\t'))
         message = await websocket.recv()
         data = json.loads(message)
-
-        if currentPlaylistUri == '':
-            currentPlaylistUri = data['result'][0]['uri']
+        result = [k for k in data['result'] if k['name'].startswith(prefix)]
+        if currentPlaylist == {} or prefix not in currentPlaylist['name']:
+            currentPlaylist = result[0]
         else:
-            for v in data['result']:
-                if previousPlaylistUri == currentPlaylistUri:
-                    currentPlaylistUri = v['uri']
+            for v in result:
+                if previousPlaylistUri == currentPlaylist['uri']:
+                    currentPlaylist = v
                     break
                 else:
                     previousPlaylistUri = v['uri']
 
-            if currentPlaylistUri == previousPlaylistUri:
-                currentPlaylistUri = data['result'][0]['uri']
-        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playlists.get_items", "params": {"uri": currentPlaylistUri}}, indent='\t'))
+            if currentPlaylist['uri'] == previousPlaylistUri:
+                currentPlaylist = result[0]
+        print(currentPlaylist)
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playlists.get_items", "params": {"uri": currentPlaylist['uri']}}, indent='\t'))
         message = await websocket.recv()
         data = json.loads(message)
         uris = []
@@ -70,6 +72,7 @@ async def jumpplaylists(uri):
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_random", "params": {"value": True}}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": True}}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
+
 
 
 try:
@@ -85,11 +88,13 @@ try:
                         playpause('ws://192.168.1.12:6680/mopidy/ws'))
                 elif k == 24:
                     asyncio.get_event_loop().run_until_complete(
-                        jumpplaylists('ws://192.168.1.12:6680/mopidy/ws'))
+                        jumpplaylists('ws://192.168.1.12:6680/mopidy/ws', '1_'))
                 elif k == 25:
-                    print('25')
+                    asyncio.get_event_loop().run_until_complete(
+                        jumpplaylists('ws://192.168.1.12:6680/mopidy/ws', '2_'))
                 elif k == 7:
-                    print('7')
+                    asyncio.get_event_loop().run_until_complete(
+                        jumpplaylists('ws://192.168.1.12:6680/mopidy/ws', '3_'))
                 elif k == 6:
                     #microphone
                     print('kill him')
@@ -100,7 +105,7 @@ try:
                     os.system('sudo reboot')
                 else:
                     asyncio.get_event_loop().run_until_complete(
-                        changeStateReq('ws://192.168.1.12:8765', v['statusPin']))
+                        changestate('ws://192.168.1.12  :8899', v['statusPin']))
             CHANGE_STATE_PINS[k]['lastStatus'] = pin_status
         time.sleep(0.1)
 finally:

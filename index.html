@@ -73,7 +73,7 @@
     var pins = [2,3,4,17,27,22,9];
     var state_colour = document.querySelectorAll('.state_colour'),
 //        state_text = document.querySelectorAll('.state_text'),
-        websocket = new WebSocket("ws://192.168.1.12:8765/");
+        websocket = new WebSocket("ws://192.168.1.12:8899/");
 
     for(var i = 0; i<pins.length;i++) {
         var pin_number = pins[i];

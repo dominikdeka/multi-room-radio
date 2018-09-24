@@ -54,7 +54,7 @@ async def counter(websocket, path):
 
 try:
     asyncio.get_event_loop().run_until_complete(
-        websockets.serve(counter, '192.168.1.12', 8765))
+        websockets.serve(counter, '192.168.1.12', 8899))
     asyncio.get_event_loop().run_forever()
 finally:
     GPIO.cleanup()
