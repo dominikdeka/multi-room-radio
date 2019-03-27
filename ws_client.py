@@ -105,7 +105,7 @@ try:
                     os.system('sudo reboot')
                 else:
                     asyncio.get_event_loop().run_until_complete(
-                        changestate('ws://192.168.1.12  :8899', v['statusPin']))
+                        changestate('ws://192.168.1.12:8899', v['statusPin']))
             CHANGE_STATE_PINS[k]['lastStatus'] = pin_status
         time.sleep(0.1)
 finally:
