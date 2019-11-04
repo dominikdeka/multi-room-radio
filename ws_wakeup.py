@@ -18,7 +18,7 @@ async def turnOnTurnOff(uri):
         print(data)
         for k in data:
             if k != 'type':
-                if ((k == '2' or k == '4') and data[k] == False) or (k != '2' and k != '4' and data[k] == True):
+                if ((k == '2' or k == '4' or k == '17') and data[k] == False) or (k != '2' and k != '4' and k != '17' and data[k] == True):
                     await websocket.send(json.dumps({'pin': int(k)}, indent='\t'))
 
 
@@ -30,7 +30,8 @@ async def startWakeup(uri, prefix):
 
         await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
         await websocket.send(json.dumps({"method":"core.tracklist.clear","jsonrpc":"2.0","id":73}, indent='\t'))
-        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uri":"local:track:muzyka%20dla%20dzieci/budzenie/mix.mp3"},"jsonrpc":"2.0","id":87}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": False}}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uri":"local:track:muzyka%20dla%20dzieci/budzenie/mix2.mp4"},"jsonrpc":"2.0","id":87}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
 
 
