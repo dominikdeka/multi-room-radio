@@ -70,34 +70,57 @@
 </div>
 
 <script>
+    function WebSocketClient(url){
+        this.url = url;
+    }
+    WebSocketClient.prototype.open = function(message){
+        var self = this;
+        self.message = typeof message !== 'undefined' ? message : null;
+        self.instance = new WebSocket(self.url);
+
+        self.instance.onmessage = function (event) {
+            data = JSON.parse(event.data);
+            switch (data.type) {
+                case 'state':
+                    for(i in pins) {
+                        state_colour[i].style.backgroundColor = data[pins[i]] ? 'green' : 'red'
+                    }
+                    break;
+                default:
+                    console.error(
+                        "unsupported event", data);
+            }
+        };
+        self.instance.onopen = function(e){
+            if(self.message){
+                self.instance.send(self.message);
+            }
+        };
+    };
+    WebSocketClient.prototype.send = function (arg) {
+        var self = this;
+        if(self.instance.readyState !== 1) {
+            self.open(arg);
+        } else {
+            self.instance.send(arg);
+        }
+    };
+
+    var wsc = new WebSocketClient('ws://192.168.1.12:8899/');
     var pins = [2,3,4,17,27,22,9];
-    var state_colour = document.querySelectorAll('.state_colour'),
-//        state_text = document.querySelectorAll('.state_text'),
-        websocket = new WebSocket("ws://192.168.1.12:8899/");
+    var state_colour = document.querySelectorAll('.state_colour');
+
+    wsc.open();
 
     for(var i = 0; i<pins.length;i++) {
         var pin_number = pins[i];
         var json_message = JSON.stringify({pin: pin_number});
         state_colour[i].onclick = function(arg) {
             return function() {
-                websocket.send(arg);
+                wsc.send(arg);
             }
         }(json_message)
     }
-    websocket.onmessage = function (event) {
-        data = JSON.parse(event.data);
-        switch (data.type) {
-            case 'state':
-                for(i in pins) {
-//                    state_text[i].textContent = data[pins[i]] ? 'on' : 'off';
-                    state_colour[i].style.backgroundColor = data[pins[i]] ? 'green' : 'red'
-                }
-                break;
-            default:
-                console.error(
-                    "unsupported event", data);
-        }
-    };
 </script>
 </body>
 </html>
