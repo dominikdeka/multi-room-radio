@@ -10,7 +10,7 @@ import RPi.GPIO as GPIO
 
 logging.basicConfig()
 
-STATE_PINS = {2: False, 3: False, 4: False, 17: False, 27: False, 22: False, 9: False}
+STATE_PINS = {2: False,3: False,14: False,4: False,15: False,18 : False,17: False}
 
 USERS = set()
 
