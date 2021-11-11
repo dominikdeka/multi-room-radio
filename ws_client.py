@@ -45,6 +45,27 @@ async def changestate(uri, pin):
     async with websockets.connect(uri) as websocket:
         await websocket.send(json.dumps({'pin': pin}, indent='\t'))
 
+async def allOffOn(uri):
+    async with websockets.connect(uri) as websocket:
+
+        await websocket.send(json.dumps({'pin': 0}, indent='\t'))
+        message = await websocket.recv()
+        data = json.loads(message)
+
+        turnOff = False
+        turnOn = True
+        for k, v in CHANGE_STATE_PINS.items():
+            if ('statusPin' in v) and (data[str(v['statusPin'])]):
+                print('in')
+                turnOff = True
+                turnOn = False
+        for k, v in CHANGE_STATE_PINS.items():
+            if 'statusPin' in v:
+                if((data[str(v['statusPin'])] == False and turnOn == True) or (data[str(v['statusPin'])] == True and turnOff == True)):
+                    await websocket.send(json.dumps({'pin': v['statusPin']}, indent='\t'))
+
+
+
 async def playpause(uri):
     async with websockets.connect(uri) as websocket:
 
@@ -62,6 +83,22 @@ async def playnext(uri):
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.next"}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_single", "params": {"value": False}}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": True}}, indent='\t'))
+
+async def play357(uri):
+    async with websockets.connect(uri) as websocket:
+        await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.clear","jsonrpc":"2.0","id":73}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": False}}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uri":"https://stream.rcs.revma.com/ye5kghkgcm0uv"},"jsonrpc":"2.0","id":87}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
+
+async def playNS(uri):
+    async with websockets.connect(uri) as websocket:
+        await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.clear","jsonrpc":"2.0","id":73}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": False}}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uri":"https://stream.rcs.revma.com/ypqt40u0x1zuv"},"jsonrpc":"2.0","id":87}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
 
 async def playprevious(uri):
     async with websockets.connect(uri) as websocket:
@@ -150,6 +187,15 @@ try:
                 elif k == 24:
                     asyncio.get_event_loop().run_until_complete(
                         playnext('ws://192.168.1.12:6680/mopidy/ws'))
+                elif k == 9:
+                    asyncio.get_event_loop().run_until_complete(
+                        play357('ws://192.168.1.12:6680/mopidy/ws'))
+                elif k == 8:
+                    asyncio.get_event_loop().run_until_complete(
+                        playNS('ws://192.168.1.12:6680/mopidy/ws'))
+                elif k == 11:
+                    asyncio.get_event_loop().run_until_complete(
+                        allOffOn('ws://192.168.1.12:8899'))
                 elif k == 10:
                     asyncio.get_event_loop().run_until_complete(
                         repeat('ws://192.168.1.12:6680/mopidy/ws'))
