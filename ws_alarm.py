@@ -89,6 +89,7 @@ async def startAlarm(uri, prefix):
             "jsonrpc": "2.0",
             "id": 555
         }, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
 
 asyncio.get_event_loop().run_until_complete(
     turnOnTurnOff('ws://192.168.1.12:8899'))
