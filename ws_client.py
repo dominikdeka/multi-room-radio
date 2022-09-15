@@ -89,7 +89,7 @@ async def play357(uri):
         await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
         await websocket.send(json.dumps({"method":"core.tracklist.clear","jsonrpc":"2.0","id":73}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": False}}, indent='\t'))
-        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uri":"https://stream.rcs.revma.com/ye5kghkgcm0uv"},"jsonrpc":"2.0","id":87}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uris":["https://stream.rcs.revma.com/ye5kghkgcm0uv"]},"jsonrpc":"2.0","id":87}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
 
 async def playNS(uri):
@@ -97,7 +97,7 @@ async def playNS(uri):
         await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
         await websocket.send(json.dumps({"method":"core.tracklist.clear","jsonrpc":"2.0","id":73}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": False}}, indent='\t'))
-        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uri":"https://stream.rcs.revma.com/ypqt40u0x1zuv"},"jsonrpc":"2.0","id":87}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uris":["https://stream.rcs.revma.com/ypqt40u0x1zuv"]},"jsonrpc":"2.0","id":87}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
 
 async def playprevious(uri):
@@ -113,7 +113,7 @@ async def repeat(uri):
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_single", "params": {"value": True}}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": True}}, indent='\t'))
 
-async def pause(uri):
+async def micstop(uri):
     async with websockets.connect(uri) as websocket:
         global stateBeforeMic
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.get_state"}, indent='\t'))
@@ -122,16 +122,13 @@ async def pause(uri):
 
         stateBeforeMic = data['result']
 
-        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.pause"}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.stop"}, indent='\t'))
 
-
-async def play(uri):
+async def micplay(uri):
     global stateBeforeMic
     if stateBeforeMic == 'playing':
         async with websockets.connect(uri) as websocket:
             await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
-
-
 
 async def jumpplaylists(uri, prefix):
     async with websockets.connect(uri) as websocket:
@@ -139,7 +136,7 @@ async def jumpplaylists(uri, prefix):
         global currentPlaylist
         previousPlaylistUri = ''
 
-        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playlists.as_list"}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 101, "method": "core.playlists.as_list"}, indent='\t'))
         message = await websocket.recv()
         data = json.loads(message)
         result = [k for k in data['result'] if k['name'].startswith(prefix)]
@@ -156,9 +153,12 @@ async def jumpplaylists(uri, prefix):
             if currentPlaylist['uri'] == previousPlaylistUri:
                 currentPlaylist = result[0]
         print(currentPlaylist)
-        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playlists.get_items", "params": {"uri": currentPlaylist['uri']}}, indent='\t'))
-        message = await websocket.recv()
-        data = json.loads(message)
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 102, "method": "core.playlists.get_items", "params": {"uri": currentPlaylist['uri']}}, indent='\t'))
+
+        while 'id' not in data or data['id'] != 102:
+            message = await websocket.recv()
+            data = json.loads(message)
+
         uris = []
         for v in data['result']:
             uris.append(v['uri'])
@@ -177,9 +177,8 @@ try:
             pin_status = GPIO.input(k)
             global microphone
             if v['lastStatus'] == 0 and pin_status == 1 and k == 7:
-                    asyncio.get_event_loop().run_until_complete(
-                                            pause('ws://192.168.1.12:6680/mopidy/ws'))
-                    microphone = subprocess.Popen('arecord -D plughw:1,0 |  aplay', stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+                    asyncio.get_event_loop().run_until_complete(micstop('ws://192.168.1.12:6680/mopidy/ws'))
+                    microphone = subprocess.Popen('arecord  -D plughw:1,0 -c 2 -r 48000 | aplay -D hdmi:2,0', stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
             if v['lastStatus'] == 1 and pin_status == 0:
                 if k == 26:
                     asyncio.get_event_loop().run_until_complete(
@@ -214,10 +213,9 @@ try:
                 elif k == 7:
                     #microphone
                     if microphone.poll() == None:
-                        asyncio.get_event_loop().run_until_complete(
-                                                play('ws://192.168.1.12:6680/mopidy/ws'))
                         os.killpg(os.getpgid(microphone.pid), signal.SIGTERM)
-#                    microphone.kill()
+                        asyncio.get_event_loop().run_until_complete(micplay('ws://192.168.1.12:6680/mopidy/ws'))
+                    # microphone.kill()
                 elif k == 22:
                     os.system('sudo reboot')
                 else:
