@@ -1,16 +1,20 @@
 **enable Network at Boot**
+
 `sudo raspi-config`
 System Options->Network at Boot (enabled)
 
 **print temperature alias**
+
 `alias temp='vcgencmd measure_temp'`
 
-***install gpio listener***
+**install gpio listener**
+
 `sudo pip3 install websockets`
 add to /etc/rc.local
 `/home/pi/salon-radio/start.sh &> /tmp/rc.local.log`
 
 **install mopidy**
+
 https://docs.mopidy.com/en/latest/installation/debian/#install-from-apt-mopidy-com
 ```
 sudo adduser mopidy video
@@ -47,13 +51,16 @@ pi@raspberrypi:~ $ sudo vi /etc/mopidy/mopidy.conf
 output = alsasink device=hdmi:vc4hdmi
 ```
 
-***crontab***
+**crontab**
+
 use backuped crontab
 
-***hdmi blink***
+**hdmi blink**
+
 turn it off
 
-***websockets***
+**websockets**
+
 add content of https://github.com/dominikdeka/multi-room-radio/blob/master/index.html to
 /usr/local/lib/python2.7/dist-packages/mopidy_mobile/www/index.html
 
