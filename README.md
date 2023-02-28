@@ -11,7 +11,7 @@ System Options->Network at Boot (enabled)
 
 `sudo pip3 install websockets`
 add to /etc/rc.local
-`/home/pi/salon-radio/start.sh &> /tmp/rc.local.log`
+`/home/pi/python_scripts/multi-room-radio/start.sh &> /tmp/rc.local.log`
 
 **install mopidy**
 
@@ -27,9 +27,8 @@ sudo python3 -m pip install Mopidy-YouTube
 sudo python3 -m pip install youtube-dl
 sudo python3 -m pip install Mopidy-Iris
 sudo python3 -m pip install Mopidy-Mobile
-sudo python3 -m pip install "git+https://github.com/mopidy/mopidy-soundcloud@master
+sudo python3 -m pip install Mopidy-SoundCloud
 sudo python3 -m pip install Mopidy-Tidal
-sudo python3 -m pip install Mopidy-Local
 
 sudo chmod 755 /media/pi
 copy mopidy.conf to /etc/mopidy/
@@ -49,6 +48,18 @@ hdmi:CARD=vc4hdmi,DEV=0
 pi@raspberrypi:~ $ sudo vi /etc/mopidy/mopidy.conf
 [audio]
 output = alsasink device=hdmi:vc4hdmi
+```
+
+```
+systemctl list-units --type=mount
+```
+--->
+```
+pi@raspberrypi:~ $ sudo vi /usr/lib/systemd/system/mopidy.service
+[Unit]
+(...)
+After=media-pi-KINGSTON.mount
+(...)
 ```
 
 **crontab**

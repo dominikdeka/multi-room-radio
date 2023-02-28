@@ -84,6 +84,7 @@ async def startWakeup(uri):
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
         if 'length' in data['result'][0]['track']:
             lenght = data['result'][0]['track']['length']
+            print('lenght', lenght)
             tlid = data['result'][0]['tlid']
             time.sleep(lenght/1000)
             await websocket.send(json.dumps({
@@ -111,6 +112,6 @@ asyncio.get_event_loop().run_until_complete(
 asyncio.get_event_loop().run_until_complete(
     startWakeup('ws://192.168.1.12:6680/mopidy/ws'))
 
-if sys.argv[1] != '6':
+if sys.argv[1] != '6' and sys.argv[1] != '7':
     asyncio.get_event_loop().run_until_complete(
         changeStates('ws://192.168.1.12:8899', statesBefore))
