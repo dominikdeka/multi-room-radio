@@ -84,6 +84,15 @@ async def playnext(uri):
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_single", "params": {"value": False}}, indent='\t'))
         await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": True}}, indent='\t'))
 
+async def tip(uri):
+    async with websockets.connect(uri) as websocket:
+        await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.clear","jsonrpc":"2.0","id":73}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.tracklist.set_repeat", "params": {"value": False}}, indent='\t'))
+        await websocket.send(json.dumps({"method":"core.tracklist.add","params":{"uris":["file:///media/pi/KINGSTON/muzyka/rec3.mp3"]},"jsonrpc":"2.0","id":87}, indent='\t'))
+        await websocket.send(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "core.playback.play"}, indent='\t'))
+
+
 async def play357(uri):
     async with websockets.connect(uri) as websocket:
         await websocket.send(json.dumps({"method":"core.mixer.set_volume","params":{"volume":100},"jsonrpc":"2.0","id":47}, indent='\t'))
@@ -204,6 +213,7 @@ try:
                 elif k == 19:
                     asyncio.get_event_loop().run_until_complete(
                         jumpplaylists('ws://192.168.1.12:6680/mopidy/ws', '1_'))
+                        # tip('ws://192.168.1.12:6680/mopidy/ws'))
                 elif k == 13:
                     asyncio.get_event_loop().run_until_complete(
                         jumpplaylists('ws://192.168.1.12:6680/mopidy/ws', '2_'))
